@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SignalScope Analytics Dashboard</title>
+    <meta
+      name="description"
+      content="A lightweight analytics dashboard for tracking metrics, charting progress, and exporting datasets."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Analytics Starter Project</p>
+          <h1>SignalScope Dashboard</h1>
+          <p class="hero-text">
+            Add records, compare actuals against targets, and turn raw info into
+            charts, percentages, and quick insight cards you can show on GitHub.
+          </p>
+        </div>
+
+        <div class="hero-actions">
+          <button id="sample-button" class="button">Load Sample Data</button>
+          <button id="export-button" class="button secondary">Export JSON</button>
+          <button id="import-button" class="button secondary">
+            Import JSON / CSV
+          </button>
+          <button id="reset-button" class="button ghost">Reset Data</button>
+          <input
+            id="import-input"
+            type="file"
+            accept=".json,.csv,application/json,text/csv"
+            hidden
+          />
+          <p id="app-message" class="app-message" aria-live="polite"></p>
+        </div>
+      </header>
+
+      <main class="dashboard-layout">
+        <aside class="panel form-panel">
+          <div class="panel-header">
+            <div>
+              <p class="panel-label">Input</p>
+              <h2>Add Or Update A Record</h2>
+            </div>
+            <p class="panel-copy">
+              Use this form to track KPIs, campaign metrics, project items, sales
+              totals, or any other numbers you want to chart.
+            </p>
+          </div>
+
+          <form id="record-form" class="record-form">
+            <div class="field">
+              <label for="record-name">Metric Name</label>
+              <input
+                id="record-name"
+                name="name"
+                type="text"
+                placeholder="Monthly recurring revenue"
+                required
+              />
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="record-category">Category</label>
+                <input
+                  id="record-category"
+                  name="category"
+                  type="text"
+                  placeholder="Revenue"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="record-owner">Owner</label>
+                <input
+                  id="record-owner"
+                  name="owner"
+                  type="text"
+                  placeholder="Growth Team"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="record-status">Status</label>
+                <select id="record-status" name="status">
+                  <option value="On Track">On Track</option>
+                  <option value="At Risk">At Risk</option>
+                  <option value="Complete">Complete</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="record-date">Date</label>
+                <input id="record-date" name="date" type="date" required />
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="record-actual">Actual Value</label>
+                <input
+                  id="record-actual"
+                  name="actual"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="24500"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="record-target">Target Value</label>
+                <input
+                  id="record-target"
+                  name="target"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="30000"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="record-notes">Notes</label>
+              <textarea
+                id="record-notes"
+                name="notes"
+                rows="4"
+                placeholder="Optional context, blockers, or why the numbers changed."
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button id="save-button" class="button" type="submit">
+                Save Record
+              </button>
+              <button
+                id="cancel-edit-button"
+                class="button ghost"
+                type="button"
+                hidden
+              >
+                Cancel Edit
+              </button>
+            </div>
+
+            <p class="storage-note">
+              Records are saved in your browser with local storage, so the page
+              remembers your data between sessions on the same device.
+            </p>
+          </form>
+        </aside>
+
+        <section class="dashboard-content">
+          <section class="panel filters-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-label">Controls</p>
+                <h2>Filter The View</h2>
+              </div>
+              <p class="panel-copy" id="results-count"></p>
+            </div>
+
+            <div class="filter-grid">
+              <div class="field">
+                <label for="search-filter">Search</label>
+                <input
+                  id="search-filter"
+                  type="search"
+                  placeholder="Search names, categories, owners, notes..."
+                />
+              </div>
+
+              <div class="field">
+                <label for="category-filter">Category</label>
+                <select id="category-filter">
+                  <option value="all">All categories</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="owner-filter">Owner</label>
+                <select id="owner-filter">
+                  <option value="all">All owners</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="status-filter">Status</label>
+                <select id="status-filter">
+                  <option value="all">All statuses</option>
+                  <option value="On Track">On Track</option>
+                  <option value="At Risk">At Risk</option>
+                  <option value="Complete">Complete</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="utility-row">
+              <button id="clear-filters-button" class="button ghost" type="button">
+                Clear Filters
+              </button>
+            </div>
+          </section>
+
+          <section class="metric-grid" aria-label="Summary metrics">
+            <article class="metric-card">
+              <p class="metric-label">Records In View</p>
+              <h3 id="metric-record-count">0</h3>
+              <p class="metric-subtext" id="metric-record-detail"></p>
+            </article>
+
+            <article class="metric-card">
+              <p class="metric-label">Actual Total</p>
+              <h3 id="metric-actual-total">0</h3>
+              <p class="metric-subtext" id="metric-actual-detail"></p>
+            </article>
+
+            <article class="metric-card">
+              <p class="metric-label">Goal Coverage</p>
+              <h3 id="metric-goal-rate">0%</h3>
+              <p class="metric-subtext" id="metric-goal-detail"></p>
+            </article>
+
+            <article class="metric-card">
+              <p class="metric-label">Complete Share</p>
+              <h3 id="metric-complete-rate">0%</h3>
+              <p class="metric-subtext" id="metric-complete-detail"></p>
+            </article>
+          </section>
+
+          <section class="chart-grid">
+            <article class="panel chart-panel">
+              <div class="panel-header compact">
+                <div>
+                  <p class="panel-label">Chart</p>
+                  <h2>Status Mix</h2>
+                </div>
+                <p class="panel-copy">How the current view is distributed.</p>
+              </div>
+              <div id="status-chart" class="chart-slot"></div>
+            </article>
+
+            <article class="panel chart-panel">
+              <div class="panel-header compact">
+                <div>
+                  <p class="panel-label">Breakdown</p>
+                  <h2>Category Share</h2>
+                </div>
+                <p class="panel-copy">Where the tracked value is concentrated.</p>
+              </div>
+              <div id="category-chart" class="chart-slot"></div>
+            </article>
+
+            <article class="panel chart-panel chart-panel-wide">
+              <div class="panel-header compact">
+                <div>
+                  <p class="panel-label">Trend</p>
+                  <h2>Actual Value Over Time</h2>
+                </div>
+                <p class="panel-copy">Daily totals based on the currently filtered data.</p>
+              </div>
+              <div id="trend-chart" class="chart-slot"></div>
+            </article>
+
+            <article class="panel chart-panel chart-panel-wide">
+              <div class="panel-header compact">
+                <div>
+                  <p class="panel-label">Performance</p>
+                  <h2>Target Progress By Category</h2>
+                </div>
+                <p class="panel-copy">How each category is pacing against its target.</p>
+              </div>
+              <div id="performance-chart" class="chart-slot"></div>
+            </article>
+          </section>
+
+          <section class="panel insights-panel">
+            <div class="panel-header compact">
+              <div>
+                <p class="panel-label">Insight</p>
+                <h2>Quick Read</h2>
+              </div>
+              <p class="panel-copy">Auto-generated takeaways from the visible records.</p>
+            </div>
+            <div id="insights-list" class="insights-list"></div>
+          </section>
+
+          <section class="panel table-panel">
+            <div class="panel-header">
+              <div>
+                <p class="panel-label">Data</p>
+                <h2>Record Table</h2>
+              </div>
+              <p class="panel-copy">
+                Edit a row to load it back into the form, or delete it from the
+                dataset.
+              </p>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th>Category</th>
+                    <th>Owner</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actual</th>
+                    <th>Target</th>
+                    <th>Progress</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="records-body"></tbody>
+              </table>
+            </div>
+
+            <p id="table-empty" class="table-empty" hidden>
+              No records match the current filters.
+            </p>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
